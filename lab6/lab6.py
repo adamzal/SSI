@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 z_w_1 = np.array([
     [0, 0, 0, 1],
@@ -89,5 +90,9 @@ for i in test_bitmaps:
     for j in template_bitmaps:
         m += [miara_podobienstwa_obustronnego(i, j)]
 
-    print(f"Bitmapa testowa \n {i} \n jest najbardziej podobna "
-          f"do bitmapy wzorcowej \n {template_bitmaps[np.argmax(m)]} \n")
+    fig, ax = plt.subplots(1, 2)
+    ax[0].imshow(i, cmap='gray_r')
+    ax[0].set_title('Bitmapa testowa')
+    ax[1].imshow(template_bitmaps[np.argmax(m)], cmap='gray_r')
+    ax[1].set_title('Bitmapa wzorcowa')
+    plt.show()
