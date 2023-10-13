@@ -78,6 +78,60 @@ class KMeans:
                 diag.show_diagram()
 
 
+class FuzzyCMeans:
+    def __init__(self, m, X, n_iter=100, fcm_m=2, epsilon=1e-10):
+        self.m = m
+        self.n_iter = n_iter
+        self.epsilon = epsilon
+        self.fcm_m = fcm_m
+        self.X = np.array(X)
+        self.M, self.n = self.X.shape
+        self.U = np.zeros((self.m, self.M))
+        self.D = np.random.rand(self.m, self.M)
+        self.V = np.zeros((self.m, self.n))
+
+    def distance(self):
+        for j in range(self.m):
+            for s in range(self.M):
+                self.D[j, s] = np.linalg.norm(self.X[s] - self.V[j]) ** 2
+
+        self.D[self.D < self.epsilon] = self.epsilon
+
+    def membership(self):
+        for j in range(self.m):
+            for s in range(self.M):
+                self.U[j, s] = self.D[j, s] ** (1 / (1 - self.fcm_m)) / np.sum(self.D[:, s] ** (1 / (1 - self.fcm_m)))
+
+    def update_centers(self):
+        for j in range(self.m):
+            for i in range(self.n):
+                self.V[j, i] = np.sum(self.U[j, :] ** self.fcm_m * self.X[:, i]) / np.sum(self.U[j, :] ** self.fcm_m)
+
+    def fit(self):
+        self.membership()
+        self.update_centers()
+        colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'orange', 'purple', 'brown']
+        for i in range(self.X.shape[0]):
+            for j in range(m):
+                if self.U[j, i] == np.max(self.U[:, i]):
+                    plt.scatter(self.X[i, 0], self.X[i, 1], c=colors[j])
+
+        for i in range(self.V.shape[0]):
+            plt.scatter(self.V[i, 0], self.V[i, 1], c=colors[i], marker='x')
+        plt.show()
+        for _ in range(self.n_iter):
+            self.distance()
+            self.membership()
+
+            if np.isnan(self.U).any():
+                print("U zawiera wartości nieoznaczone. Przerwanie programu.")
+                break
+
+            self.update_centers()
+
+        return self.U, self.V
+
+
 if __name__ == "__main__":
     spirala = DataSet("spirala.txt", sep="   ")
 
@@ -85,4 +139,18 @@ if __name__ == "__main__":
     conv_data = sc.convert_str_to_numbers([0, 1])
 
     km = KMeans(conv_data, m=4)
-    km.fit()
+    # km.fit()
+
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'orange', 'purple', 'brown']
+    X = np.array(conv_data)
+    m = 3
+    fcm = FuzzyCMeans(m, conv_data)
+    U, V = fcm.fit()
+    for i in range(X.shape[0]):
+        for j in range(m):
+            if U[j, i] == np.max(U[:, i]):
+                plt.scatter(X[i, 0], X[i, 1], c=colors[j])
+
+    for i in range(V.shape[0]):
+        plt.scatter(V[i, 0], V[i, 1], c=colors[i], marker='x')
+    plt.show()
